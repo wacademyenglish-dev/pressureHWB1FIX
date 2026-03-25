@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WOLF LABS | Homework: Under Pressure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- PREMIUM GLASSMORPHISM MOBILE THEME --- */
+        :root {
+            --bg: #0a0a0a;
+            --surface: rgba(255, 255, 255, 0.04);
+            --surface-hover: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #1DB954;
+            --accent-dim: rgba(29, 185, 84, 0.15);
+            --correct: #1DB954;
+            --incorrect: #E91429;
+            --text-main: #FFFFFF;
+            --text-dim: #B3B3B3;
+            --font: 'Inter', system-ui, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); }
+
+        body {
+            background: radial-gradient(circle at top left, #1a1a2e, #050505);
+            background-attachment: fixed;
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow: hidden; /* Prevent scrolling, app-like feel */
+        }
+
+        /* --- HEADER --- */
+        .header {
+            position: fixed;
+            top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo { font-weight: 800; font-size: 0.85rem; letter-spacing: 1.5px; color: #fff; }
+        .logo span { color: var(--accent); }
+        
+        .progress-bar-container {
+            position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.05);
+        }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s ease; box-shadow: 0 0 10px rgba(29, 185, 84, 0.5); }
+
+        /* --- MAIN CONTAINER (CARDS) --- */
+        main {
+            flex: 1;
+            margin-top: 60px;
+            margin-bottom: 80px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .step {
+            position: absolute;
+            width: 100%;
+            max-width: 500px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(30px);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+            visibility: visible;
+            position: relative;
+        }
+
+        .step.exiting {
+            transform: translateX(-30px);
+            opacity: 0;
+        }
+
+        /* --- TYPOGRAPHY & CARDS --- */
+        .tag { color: var(--accent); font-size: 0.75rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; }
+        h1 { font-size: 2rem; font-weight: 800; line-height: 1.2; margin-bottom: 10px; letter-spacing: -0.5px; }
+        p.subtitle { color: var(--text-dim); font-size: 1.05rem; margin-bottom: 20px; }
+
+        .question-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px 25px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .question-text { font-size: 1.2rem; font-weight: 600; line-height: 1.5; color: #fff; }
+
+        /* --- MULTIPLE CHOICE --- */
+        .mc-options { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        .mc-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 14px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+            width: 100%;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .mc-btn:hover { background: var(--surface-hover); border-color: rgba(255, 255, 255, 0.2); }
+        
+        .mc-btn.correct { 
+            border-color: var(--accent); 
+            background: var(--accent-dim); 
+            box-shadow: 0 0 15px rgba(29, 185, 84, 0.2);
+        }
+        .mc-btn.correct::after { content: '✓'; color: var(--accent); font-weight: 800; font-size: 1.2rem; }
+        
+        .mc-btn.incorrect { 
+            border-color: var(--incorrect); 
+            background: rgba(233, 20, 41, 0.15); 
+        }
+        .mc-btn.incorrect::after { content: '✕'; color: var(--incorrect); font-weight: 800; font-size: 1.2rem; }
+
+        /* --- SENTENCE BUILDER --- */
+        .drop-zone {
+            min-height: 100px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            gap: 8px;
+            flex-wrap: wrap;
+            transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .drop-zone.success { 
+            border-color: var(--correct); 
+            border-style: solid; 
+            background: var(--accent-dim); 
+            box-shadow: 0 0 20px rgba(29, 185, 84, 0.15);
+        }
+        .word-bank { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .word-chip {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 500px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .word-chip:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
+        .word-chip.used { opacity: 0; pointer-events: none; transform: scale(0.8); }
+
+        /* --- BOTTOM NAVIGATION --- */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 15px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .next-btn {
+            background: var(--text-main);
+            color: #000;
+            border: none;
+            padding: 16px 0;
+            border-radius: 500px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            width: 100%;
+            max-width: 500px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-transform: uppercase;
+        }
+        .next-btn:disabled { opacity: 0.3; pointer-events: none; background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); }
+        .next-btn.ready { background: var(--accent); color: #000; box-shadow: 0 0 20px rgba(29, 185, 84, 0.4); transform: translateY(-2px); }
+        .next-btn.ready:active { transform: translateY(1px); }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">WOLF LABS <span>|</span> HOMEWORK</div>
+        <div style="color: var(--text-dim); font-size: 0.8rem; font-weight: 700;" id="step-counter">1/7</div>
+        <div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div></div>
+    </header>
+
+    <main>
+        <!-- INTRO -->
+        <section class="step active" id="step-0">
+            <div class="tag">TRAINING MISSION</div>
+            <h1>Under Pressure</h1>
+            <p class="subtitle">Complete this quick interactive review to lock in the vocabulary and grammar from today's session.</p>
+            
+            <div class="question-box" style="background: transparent; border: none; padding: 0; box-shadow: none;">
+                <div style="background: var(--surface); border: 1px solid var(--border); padding: 15px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; text-align: left; backdrop-filter: blur(10px);">
+                    <span style="font-size: 1.5rem;">🎯</span>
+                    <div><h3 style="font-size: 0.95rem; margin:0; color: #fff;">Multiple Choice</h3><p style="margin:0; font-size: 0.8rem; color: var(--text-dim);">Test your vocabulary</p></div>
+                </div>
+                <div style="background: var(--surface); border: 1px solid var(--border); padding: 15px; border-radius: 16px; display: flex; align-items: center; gap: 15px; text-align: left; backdrop-filter: blur(10px);">
+                    <span style="font-size: 1.5rem;">🧩</span>
+                    <div><h3 style="font-size: 0.95rem; margin:0; color: #fff;">Sentence Builder</h3><p style="margin:0; font-size: 0.8rem; color: var(--text-dim);">Assemble correct grammar</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Q1: VOCAB -->
+        <section class="step" id="step-1">
+            <div class="tag">VOCABULARY</div>
+            <div class="question-box">
+                <p class="question-text">If a stressful situation is completely impossible to avoid, it is...</p>
+            </div>
+            <div class="mc-options">
+                <button class="mc-btn" data-correct="false" onclick="selectOption(this)">Preoccupied</button>
+                <button class="mc-btn" data-correct="true" onclick="selectOption(this)">Inevitable</button>
+                <button class="mc-btn" data-correct="false" onclick="selectOption(this)">Vulnerable</button>
+            </div>
+        </section>
+
+        <!-- Q2: IDIOMS -->
+        <section class="step" id="step-2">
+            <div class="tag">IDIOMS</div>
+            <div class="question-box">
+                <p class="question-text">"I have a huge presentation today and I'm sweating ________."</p>
+            </div>
+            <div class="mc-options">
+                <button class="mc-btn" data-correct="false" onclick="selectOption(this)">butterflies</button>
+                <button class="mc-btn" data-correct="false" onclick="selectOption(this)">water</button>
+                <button class="mc-btn" data-correct="true" onclick="selectOption(this)">bullets</button>
+            </div>
+        </section>
+
+        <!-- Q3: CONCEPT -->
+        <section class="step" id="step-3">
+            <div class="tag">CONCEPT</div>
+            <div class="question-box">
+                <p class="question-text">What does "choking" under pressure mean?</p>
+            </div>
+            <div class="mc-options">
+                <button class="mc-btn" data-correct="false" onclick="selectOption(this)">Winning at the last second</button>
+                <button class="mc-btn" data-correct="true" onclick="selectOption(this)">Failing because you are nervous</button>
+                <button class="mc-btn" data-correct="false" onclick="selectOption(this)">Breathing too fast</button>
+            </div>
+        </section>
+
+        <!-- Q4: GRAMMAR MC -->
+        <section class="step" id="step-4">
+            <div class="tag">GRAMMAR</div>
+            <div class="question-box">
+                <p class="question-text">"Tomorrow is my driving test. To pass the test, I ________ stop at every red light. It's the law."</p>
+            </div>
+            <div class="mc-options">
+                <button class="mc-btn" data-correct="false" onclick="selectOption(this)">should</button>
+                <button class="mc-btn" data-correct="true" onclick="selectOption(this)">have to</button>
+                <button class="mc-btn" data-correct="false" onclick="selectOption(this)">must to</button>
+            </div>
+        </section>
+
+        <!-- Q5: BUILDER 1 -->
+        <section class="step" id="step-5">
+            <div class="tag">SENTENCE BUILDER</div>
+            <div class="question-box" style="margin-bottom: 0;">
+                <p class="question-text">Build the advice:<br><span style="color:var(--text-dim); font-size:1rem; font-weight: 400;">"Você deveria respirar fundo."</span></p>
+            </div>
+            
+            <div class="drop-zone" id="dz1"></div>
+            
+            <div class="word-bank" id="wb1">
+                <div class="word-chip" onclick="moveWord(this, 'dz1', ['You', 'should', 'take', 'a', 'deep', 'breath'])">take</div>
+                <div class="word-chip" onclick="moveWord(this, 'dz1', ['You', 'should', 'take', 'a', 'deep', 'breath'])">deep</div>
+                <div class="word-chip" onclick="moveWord(this, 'dz1', ['You', 'should', 'take', 'a', 'deep', 'breath'])">You</div>
+                <div class="word-chip" onclick="moveWord(this, 'dz1', ['You', 'should', 'take', 'a', 'deep', 'breath'])">should</div>
+                <div class="word-chip" onclick="moveWord(this, 'dz1', ['You', 'should', 'take', 'a', 'deep', 'breath'])">breath</div>
+                <div class="word-chip" onclick="moveWord(this, 'dz1', ['You', 'should', 'take', 'a', 'deep', 'breath'])">a</div>
+            </div>
+        </section>
+
+        <!-- Q6: BUILDER 2 -->
+        <section class="step" id="step-6">
+            <div class="tag">SENTENCE BUILDER</div>
+            <div class="question-box" style="margin-bottom: 0;">
+                <p class="question-text">Build the obligation:<br><span style="color:var(--text-dim); font-size:1rem; font-weight: 400;">"Nós temos que focar agora."</span></p>
+            </div>
+            
+            <div class="drop-zone" id="dz2"></div>
+            
+            <div class="word-bank" id="wb2">
+                <div class="word-chip" onclick="moveWord(this, 'dz2', ['We', 'have', 'to', 'focus', 'now'])">have</div>
+                <div class="word-chip" onclick="moveWord(this, 'dz2', ['We', 'have', 'to', 'focus', 'now'])">now</div>
+                <div class="word-chip" onclick="moveWord(this, 'dz2', ['We', 'have', 'to', 'focus', 'now'])">focus</div>
+                <div class="word-chip" onclick="moveWord(this, 'dz2', ['We', 'have', 'to', 'focus', 'now'])">We</div>
+                <div class="word-chip" onclick="moveWord(this, 'dz2', ['We', 'have', 'to', 'focus', 'now'])">to</div>
+            </div>
+        </section>
+
+        <!-- OUTRO -->
+        <section class="step" id="step-7">
+            <div style="text-align: center; margin-top: 40px;">
+                <div style="width: 80px; height: 80px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; box-shadow: 0 0 30px rgba(29, 185, 84, 0.4);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width: 40px; height: 40px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <h1 style="color: var(--accent);">Mission Complete</h1>
+                <p class="subtitle">Your homework data has been successfully processed and synced to the teacher's database.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM ACTION -->
+    <div class="bottom-bar">
+        <button class="next-btn" id="nextBtn" onclick="nextStep()">Start Homework</button>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        const steps = document.querySelectorAll('.step');
+        const totalSteps = steps.length;
+        const nextBtn = document.getElementById('nextBtn');
+        const progressBar = document.getElementById('progressBar');
+        const stepCounter = document.getElementById('step-counter');
+
+        let buildState = { 'dz1': [], 'dz2': [] };
+
+        function updateUI() {
+            // Update Step Visibility
+            steps.forEach((step, index) => {
+                if(index === currentStep) {
+                    step.classList.remove('exiting');
+                    step.classList.add('active');
+                } else if (index < currentStep) {
+                    step.classList.remove('active');
+                    step.classList.add('exiting'); // Slide left effect
+                } else {
+                    step.classList.remove('active', 'exiting');
+                }
+            });
+
+            // Update Progress Bar
+            const progress = (currentStep / (totalSteps - 1)) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Update Header Counter
+            if(currentStep === 0) {
+                stepCounter.innerText = "INTRO";
+            } else if (currentStep === totalSteps - 1) {
+                stepCounter.innerText = "DONE";
+            } else {
+                stepCounter.innerText = `${currentStep}/${totalSteps - 2}`;
+            }
+
+            // Update Button State
+            if (currentStep === 0) {
+                nextBtn.innerText = "START HOMEWORK";
+                nextBtn.disabled = false;
+                nextBtn.classList.add('ready');
+            } else if (currentStep === totalSteps - 1) {
+                nextBtn.innerText = "CLOSE SYSTEM";
+                nextBtn.disabled = false;
+                nextBtn.classList.add('ready');
+            } else {
+                nextBtn.innerText = "NEXT QUESTION";
+                nextBtn.disabled = true; // Disabled until answered correctly
+                nextBtn.classList.remove('ready');
+            }
+        }
+
+        function nextStep() {
+            if (currentStep === totalSteps - 1) {
+                alert("You can close this window now.");
+                return;
+            }
+            currentStep++;
+            updateUI();
+        }
+
+        // --- MULTIPLE CHOICE LOGIC (WITH VALIDATION) ---
+        function selectOption(btn) {
+            const parentStep = btn.closest('.step');
+            const allBtns = parentStep.querySelectorAll('.mc-btn');
+            
+            // Se o passo já foi respondido corretamente, não faz nada
+            if (parentStep.classList.contains('answered-correctly')) return;
+
+            if (btn.dataset.correct === "true") {
+                // Correct Answer
+                btn.classList.remove('incorrect');
+                btn.classList.add('correct');
+                
+                // Disable other buttons smoothly
+                allBtns.forEach(b => {
+                    if (b !== btn) {
+                        b.style.opacity = '0.4';
+                    }
+                    b.style.pointerEvents = 'none';
+                });
+
+                // Mark step as completed
+                parentStep.classList.add('answered-correctly');
+                
+                // Enable next button
+                nextBtn.disabled = false;
+                nextBtn.classList.add('ready');
+            } else {
+                // Incorrect Answer
+                btn.classList.add('incorrect');
+                btn.style.animation = 'shake 0.4s';
+                btn.style.pointerEvents = 'none'; // Disable the wrong option
+                
+                setTimeout(() => {
+                    btn.style.animation = '';
+                }, 400);
+            }
+        }
+
+        // --- SENTENCE BUILDER LOGIC ---
+        function moveWord(chip, dzId, targetArray) {
+            if(chip.classList.contains('used')) return;
+            
+            const word = chip.innerText;
+            const dz = document.getElementById(dzId);
+            
+            // Create chip inside drop zone
+            const newChip = document.createElement('div');
+            newChip.className = 'word-chip';
+            newChip.style.background = '#fff';
+            newChip.style.color = '#000';
+            newChip.style.border = 'none';
+            newChip.innerText = word;
+            dz.appendChild(newChip);
+            
+            chip.classList.add('used'); // Hide from bank
+
+            // Update state
+            buildState[dzId].push(word);
+
+            // Check if sentence is complete
+            if(buildState[dzId].length === targetArray.length) {
+                // Validate array content
+                const isCorrect = JSON.stringify(buildState[dzId]) === JSON.stringify(targetArray);
+                
+                if(isCorrect) {
+                    // Correct!
+                    dz.classList.add('success');
+                    Array.from(dz.children).forEach(c => {
+                        c.style.background = 'var(--correct)';
+                        c.style.color = '#000';
+                    });
+                    
+                    // Enable next button
+                    nextBtn.disabled = false;
+                    nextBtn.classList.add('ready');
+                } else {
+                    // Incorrect - Shake and Reset
+                    dz.style.borderColor = 'var(--incorrect)';
+                    dz.style.animation = 'shake 0.4s';
+                    
+                    setTimeout(() => {
+                        dz.innerHTML = '';
+                        dz.style.borderColor = '';
+                        dz.style.animation = '';
+                        buildState[dzId] = [];
+                        
+                        // Show chips in bank again
+                        const bankChips = chip.parentElement.querySelectorAll('.word-chip');
+                        bankChips.forEach(c => c.classList.remove('used'));
+                    }, 800);
+                }
+            }
+        }
+
+        // Init
+        updateUI();
+    </script>
+</body>
+</html>
